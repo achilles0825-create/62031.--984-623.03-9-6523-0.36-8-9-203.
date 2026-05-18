@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam級槍戰 RPG - 帳號登入熔煉版</title>
+    <style>
+        /* 全局遊戲風格樣式 */
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* ========================================== */
+        /* 1. 登入 / 註冊 介面樣式 */
+        /* ========================================== */
+        .auth-container {
+            background-color: #262626;
+            border: 2px solid #ff4444;
+            border-radius: 8px;
+            padding: 30px;
+            width: 350px;
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.2);
+            display: block; /* 初始顯示 */
+        }
+
+        .auth-header h2 {
+            text-align: center;
+            margin: 0 0 15px 0;
+            color: #ff4444;
+            font-size: 22px;
+            letter-spacing: 2px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #404040;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: #888888;
+            font-size: 16px;
+            padding: 10px 0;
+            cursor: pointer;
+            width: 50%;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            color: #ff4444;
+            border-bottom: 3px solid #ff4444;
+            font-weight: bold;
+        }
+
+        .form-block {
+            display: none;
+        }
+
+        .form-block.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #cccccc;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            background-color: #333333;
+            border: 1px solid #555555;
+            color: #ffffff;
+            border-radius: 4px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background-color: #cc3333;
+        }
+
+        .switch-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #aaa;
+            font-size: 13px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* ========================================== */
+        /* 2. 遊戲主畫面（戰區系統已連線）樣式 */
+        /* ========================================== */
+        #game-screen {
+            display: none; /* 初始隱藏，登入後顯示 */
+            width: 100vw;
+            height: 100vh;
+            background-color: #0b0f19;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #00ffcc;
+            padding-bottom: 10px;
+        }
+
+        .game-title {
+            color: #00ffcc;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+        }
+
+        .agent-info {
+            font-size: 16px;
+            color: #ffffff;
+            background: #1f293d;
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid #00ffcc;
+        }
+
+        /* ========================================== */
+        /* 3. 您原本網頁的功能容器（熔煉、按鈕等） */
+        /* ========================================== */
+        .original-game-features {
+            margin-top: 30px;
+            background-color: #161d2d;
+            border: 1px solid #3b4861;
+            border-radius: 6px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        /* 這裡可以放您原本功能的 CSS 樣式，例如原本的按鈕外觀 */
+        .original-btn {
+            background-color: #00ffcc;
+            color: #000000;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+            transition: background 0.2s;
+        }
+
+        .original-btn:hover {
+            background-color: #00ccaa;
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-container" id="auth-box">
+    <div class="auth-header">
+        <h2>特工簽到中心</h2>
+    </div>
+
+    <div class="auth-tabs">
+        <button id="tab-login" class="tab-btn active" onclick="switchTab('login')">執行登入</button>
+        <button id="tab-register" class="tab-btn" onclick="switchTab('register')">前往註冊</button>
+    </div>
+
+    <div id="form-login" class="form-block active">
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>特工代號 (帳號)</label>
+                <input type="text" id="login-username" required placeholder="請輸入您的特工代號">
+            </div>
+            <div class="form-group">
+                <label>安全密鑰 (密碼)</label>
+                <input type="password" id="login-password" required placeholder="請輸入安全密鑰">
+            </div>
+            <button type="submit" class="submit-btn">執行登入進駐</button>
+        </form>
+        <a class="switch-link" onclick="switchTab('register')">新來的特工？ 前往註冊帳籍</a>
+    </div>
+
+    <div id="form-register" class="form-block">
+        <form id="registerForm" onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label>新特工代號 (帳號)</label>
+                <input type="text" id="reg-username" required placeholder="請設定新代號">
+            </div>
+            <div class="form-group">
+                <label>設定安全密鑰 (密碼)</label>
+                <input type="password" id="reg-password" required placeholder="請設定安全密鑰">
+            </div>
+            <button type="submit" class="submit-btn">建立特工帳籍</button>
+        </form>
+        <a class="switch-link" onclick="switchTab('login')">已有特工帳籍？ 前往登入簽到</a>
+    </div>
+</div>
+
+<div id="game-screen">
+    <div class="game-header">
+        <div class="game-title">戰區系統已連線 CORE_SYS_v1.0.2</div>
+        <div class="agent-info">當前特工：<span id="display-agent-id">未知</span></div>
+    </div>
+    
+    <div class="original-game-features">
+        <h3>熔煉戰區主控台</h3>
+        <p>特工已成功進駐。請使用下方裝備進行系統操作：</p>
+        
+        <div style="margin: 20px 0; font-size: 18px;">
+            目前熔煉能量：<span id="energy-counter" style="color: #00ffcc; font-weight: bold;">0</span> DG
+        </div>
+        
+        <button class="original-btn" onclick="executeOriginalFeature()">執行核心熔煉</button>
+    </div>
+    </div>
+
+<script>
+    // 1. 介面頁籤切換邏輯
+    function switchTab(type) {
+        const loginForm = document.getElementById('form-login');
+        const registerForm = document.getElementById('form-register');
+        const loginTab = document.getElementById('tab-login');
+        const registerTab = document.getElementById('tab-register');
+
+        if (type === 'login') {
+            loginForm.classList.add('active');
+            registerForm.classList.remove('active');
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+        } else if (type === 'register') {
+            registerForm.classList.add('active');
+            loginForm.classList.remove('active');
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+        }
+    }
+
+    // 2. 處理登入成功並開啟戰區系統
+    function handleLogin(event) {
+        event.preventDefault();
+        const user = document.getElementById('login-username').value;
+        
+        // 跳出提示
+        alert(`特工 ${user} 正在嘗試執行登入進駐...`);
+        
+        // 帶入代號
+        document.getElementById('display-agent-id').innerText = user;
+        
+        // 切換畫面：隱藏登入，顯示遊戲戰區
+        document.getElementById('auth-box').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+    }
+
+    // 3. 處理註冊邏輯
+    function handleRegister(event) {
+        event.preventDefault();
+        const user = document.getElementById('reg-username').value;
+        alert(`正在為新特工 ${user} 建立帳籍... 建立完成！請切換至登入頁面。`);
+        switchTab('login');
+    }
+
+    // ==========================================
+    // 4. 您原本網頁的 JavaScript 功能邏輯
+    // ==========================================
+    let energy = 0; // 變數範例
+
+    // 💡 請把您原本網頁中點擊按鈕會觸發的 function 寫在這裡
+    function executeOriginalFeature() {
+        energy += 10;
+        document.getElementById('energy-counter').innerText = energy;
+        console.log("核心熔煉成功，當前能量：" + energy);
+        
+        // 如果您原本有其他邏輯（例如 alert、扣分、存檔），直接加在下面即可
+    }
+</script>
+
+</body>
+</html>
